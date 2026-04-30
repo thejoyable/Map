@@ -312,60 +312,68 @@ def start_detection():
 
 @app.route('/api/get_next_prediction', methods=['POST'])
 def get_next_prediction():
-    data       = request.json
-    model_type = data.get('model_type', 'lstm')
-    index      = data.get('index', 0)
+    try:
+        data       = request.json
+        if data is None:
+            data = {}
+        model_type = data.get('model_type', 'lstm')
+        index      = data.get('index', 0)
 
-    # Make sure we are loaded in this specific worker process
-    load_data()
-    load_models()
+        # Make sure we are loaded in this specific worker process
+        load_data()
+        load_models()
 
-    if not data_loaded:
-        return jsonify({'error': 'Data not initialized'}), 500
+        if not data_loaded:
+            return jsonify({'error': 'Data not initialized'}), 500
 
-    if index >= len(df_with_ips):
-        return jsonify({'status': 'completed', 'total_processed': index})
+        if index >= len(df_with_ips):
+            return jsonify({'status': 'completed', 'total_processed': index})
 
-    row = df_with_ips.iloc[index]
-    features = row[feature_cols].values.astype(np.float32).reshape(1, -1)
-    actual_label = int(row['label'])
+        row = df_with_ips.iloc[index]
+        features = row[feature_cols].values.astype(np.float32).reshape(1, -1)
+        actual_label = int(row['label'])
 
-    if model_type == 'lstm':
-        if lstm_model is None:
-            return jsonify({'error': 'LSTM model not loaded'}), 500
-        reconstruction       = lstm_model.predict(features, verbose=0)
-        reconstruction_error = float(np.mean(np.square(features - reconstruction)))
-        predicted_label      = 1 if reconstruction_error > LSTM_THRESHOLD else 0
-        threshold            = LSTM_THRESHOLD
-    else:
-        if vae_model is None:
-            return jsonify({'error': 'VAE model not loaded'}), 500
-        reconstruction       = vae_model.predict(features, verbose=0)
-        reconstruction_error = float(np.mean(np.square(features - reconstruction)))
-        predicted_label      = 1 if reconstruction_error > VAE_THRESHOLD else 0
-        threshold            = VAE_THRESHOLD
+        if model_type == 'lstm':
+            if lstm_model is None:
+                return jsonify({'error': 'LSTM model not loaded'}), 500
+            reconstruction       = lstm_model.predict(features, verbose=0)
+            reconstruction_error = float(np.mean(np.square(features - reconstruction)))
+            predicted_label      = 1 if reconstruction_error > LSTM_THRESHOLD else 0
+            threshold            = LSTM_THRESHOLD
+        else:
+            if vae_model is None:
+                return jsonify({'error': 'VAE model not loaded'}), 500
+            reconstruction       = vae_model.predict(features, verbose=0)
+            reconstruction_error = float(np.mean(np.square(features - reconstruction)))
+            predicted_label      = 1 if reconstruction_error > VAE_THRESHOLD else 0
+            threshold            = VAE_THRESHOLD
 
-    result = {
-        'index':               index,
-        'src_ip':              row['src_ip'],
-        'dst_ip':              row['dst_ip'],
-        'src_lat':             float(row['src_lat']),
-        'src_lon':             float(row['src_lon']),
-        'dst_lat':             float(row['dst_lat']),
-        'dst_lon':             float(row['dst_lon']),
-        'src_city':            row['src_city'],
-        'dst_city':            row['dst_city'],
-        'actual_label':        actual_label,
-        'predicted_label':     predicted_label,
-        'reconstruction_error': reconstruction_error,
-        'threshold':           threshold,
-        'timestamp':           datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    }
+        result = {
+            'index':               index,
+            'src_ip':              row['src_ip'],
+            'dst_ip':              row['dst_ip'],
+            'src_lat':             float(row['src_lat']),
+            'src_lon':             float(row['src_lon']),
+            'dst_lat':             float(row['dst_lat']),
+            'dst_lon':             float(row['dst_lon']),
+            'src_city':            row['src_city'],
+            'dst_city':            row['dst_city'],
+            'actual_label':        actual_label,
+            'predicted_label':     predicted_label,
+            'reconstruction_error': reconstruction_error,
+            'threshold':           threshold,
+            'timestamp':           datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
 
-    return jsonify({
-        'status': 'success',
-        'result': result
-    })
+        return jsonify({
+            'status': 'success',
+            'result': result
+        })
+    except Exception as e:
+        import traceback
+        trace = traceback.format_exc()
+        print(trace)
+        return jsonify({'error': str(e), 'trace': trace}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
