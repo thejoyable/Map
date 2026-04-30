@@ -264,7 +264,7 @@ def load_data():
     global df, df_with_ips, feature_cols, data_loaded
     if data_loaded:
         return
-    csv_path = os.path.join(BASE_DIR, 'test_data.csv')
+    csv_path = 'test_data.csv'
     df = pd.read_csv(csv_path)
     df_with_ips = add_real_ips_to_data(df)
     
