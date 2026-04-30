@@ -30,8 +30,8 @@ class Sampling(keras.layers.Layer):
 
 # Use relative paths for deployment
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-LSTM_MODEL_PATH = os.path.join(BASE_DIR, 'best_fl_model_LSTM_AE.keras')
-VAE_MODEL_PATH  = os.path.join(BASE_DIR, 'best_model_VAE_Before_FL.keras')
+LSTM_MODEL_PATH = 'best_fl_model_LSTM_AE.keras'
+VAE_MODEL_PATH  = 'best_model_VAE_Before_FL.keras'
 
 lstm_model = None
 vae_model  = None
