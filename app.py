@@ -30,8 +30,8 @@ class Sampling(keras.layers.Layer):
 
 # Use relative paths for deployment
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-LSTM_MODEL_PATH = 'best_fl_model_LSTM_AE.keras'
-VAE_MODEL_PATH  = 'best_model_VAE_Before_FL.keras'
+LSTM_MODEL_PATH = os.path.join(BASE_DIR, 'best_fl_model_LSTM_AE.keras')
+VAE_MODEL_PATH  = os.path.join(BASE_DIR, 'best_model_VAE_Before_FL.keras')
 
 lstm_model = None
 vae_model  = None
@@ -264,7 +264,7 @@ def load_data():
     global df, df_with_ips, feature_cols, data_loaded
     if data_loaded:
         return
-    csv_path = 'test_data.csv'
+    csv_path = os.path.join(BASE_DIR, 'test_data.csv')
     df = pd.read_csv(csv_path)
     df_with_ips = add_real_ips_to_data(df)
     
@@ -277,6 +277,7 @@ def setup():
     # Only loads data on the very first HTTP request
     if request.endpoint in ['start_detection', 'get_next_prediction']:
         load_data()
+        load_models()
 
 @app.route('/')
 def index():
@@ -314,6 +315,10 @@ def get_next_prediction():
     data       = request.json
     model_type = data.get('model_type', 'lstm')
     index      = data.get('index', 0)
+
+    # Make sure we are loaded in this specific worker process
+    load_data()
+    load_models()
 
     if not data_loaded:
         return jsonify({'error': 'Data not initialized'}), 500
