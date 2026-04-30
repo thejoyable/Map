@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Intrusion Detection System | Live Monitoring</title>
+  <meta name="description" content="Real-time network intrusion detection with AI-powered anomaly detection and live geo-tracking visualization.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="ambient-halo" aria-hidden="true"></div>
+
+  <!-- ═══ PILL NAVBAR ═══ -->
+  <nav class="nav" id="nav">
+    <div class="nav__brand">NetShield AI</div>
+    <div class="nav__links">
+      <a href="#overview">Overview</a>
+      <a href="#technology">Technology</a>
+      <a href="#detection">Detection</a>
+      <a href="#monitoring">Live Monitor</a>
+    </div>
+    <a class="nav__cta" href="#monitoring">Start Monitoring</a>
+  </nav>
+
+  <!-- ═══ SCROLLYTELLING ═══ -->
+  <main class="scrolly" id="scrolly">
+    <div class="sticky">
+      <canvas id="sequence" aria-label="Network security visualization"></canvas>
+      <div class="canvas-glow" aria-hidden="true"></div>
+      <div class="loader" id="loader" style="display: none;">
+        Loading security interface
+        <span id="loader-progress">0%</span>
+      </div>
+    </div>
+
+    <div class="story" id="story">
+      <!-- 0–15% Hero -->
+      <section class="panel panel--center" data-start="0.0" data-end="0.15" id="overview">
+        <div class="panel__content">
+          <span class="panel__kicker">NetShield AI</span>
+          <h1>Network<br><em>Intrusion Detection</em></h1>
+          <p class="panel__lead">AI-powered real-time monitoring with deep learning anomaly detection and live geo-tracking visualization.</p>
+          <p class="panel__sub">Protecting networks with cutting-edge machine learning.</p>
+        </div>
+      </section>
+
+      <!-- 15–40% Left -->
+      <section class="panel panel--left" data-start="0.15" data-end="0.4" id="technology">
+        <div class="panel__content">
+          <span class="panel__kicker">Technology</span>
+          <h2>Deep Learning<br><em>Anomaly Detection.</em></h2>
+          <p class="panel__lead">Utilizing LSTM Autoencoders and Variational Autoencoders trained through Federated Learning for privacy-preserving, distributed threat detection.</p>
+        </div>
+      </section>
+
+      <!-- 40–65% Right -->
+      <section class="panel panel--right" data-start="0.4" data-end="0.65" id="detection">
+        <div class="panel__content">
+          <span class="panel__kicker">Real-Time Analysis</span>
+          <h2>Live Threat<br><em>Visualization.</em></h2>
+          <p class="panel__lead">Monitor network traffic in real-time with geographic visualization. Green markers indicate benign traffic, red markers signal potential attacks.</p>
+          <p class="panel__sub">Instant threat identification and response.</p>
+        </div>
+      </section>
+
+      <!-- 65–85% Left -->
+      <section class="panel panel--left" data-start="0.65" data-end="0.85">
+        <div class="panel__content">
+          <span class="panel__kicker">Accuracy</span>
+          <h2>Precision-Tuned<br><em>Detection Models.</em></h2>
+          <p class="panel__lead">Fine-tuned thresholds ensure minimal false positives while maintaining high detection rates. Compare predicted vs actual results for complete transparency.</p>
+        </div>
+      </section>
+
+      <!-- 85–100% CTA -->
+      <section class="panel panel--center panel--cta" data-start="0.85" data-end="1.0">
+        <div class="panel__content">
+          <span class="panel__kicker">Get Started</span>
+          <h2>Begin Live <em>Monitoring.</em></h2>
+          <p class="panel__lead">Start detecting network intrusions in real-time with our advanced AI models.</p>
+          <div class="panel__actions">
+            <a class="btn btn--primary" href="#monitoring">Launch Monitor</a>
+            <a class="btn btn--ghost" href="#overview">Learn More</a>
+          </div>
+          <p class="panel__sub">LSTM & VAE models ready for deployment.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+
+
+  <!-- ═══ DIVIDER ═══ -->
+  <div class="section-divider"></div>
+
+  <!-- ═══ MONITORING SECTION ═══ -->
+  <section class="tryon-section" id="monitoring">
+    <div class="tryon-header">
+      <span class="panel__kicker">Live Monitoring</span>
+      <h2>Network Intrusion Detection</h2>
+      <p>Select your detection model and start monitoring network traffic in real-time.</p>
+    </div>
+
+    <!-- Model Selection -->
+    <div class="select-wrapper">
+      <label for="model-select">Detection Model</label>
+      <select id="model-select">
+        <option value="lstm">LSTM Autoencoder (Threshold: 0.000053)</option>
+        <option value="vae">VAE Model (Threshold: 0.000241)</option>
+      </select>
+
+      <label for="test-size-select">Test Size</label>
+      <select id="test-size-select">
+        <option value="25">25%</option>
+        <option value="50">50%</option>
+        <option value="75">75%</option>
+        <option value="100" selected>100%</option>
+      </select>
+    </div>
+
+    <!-- Control Buttons -->
+    <div class="control-buttons">
+      <button id="start-btn" class="control-btn control-btn--start">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+          <path d="M6.271 5.055a.5.5 0 0 1 .52.038l3.5 2.5a.5.5 0 0 1 0 .814l-3.5 2.5A.5.5 0 0 1 6 10.5v-5a.5.5 0 0 1 .271-.445z"/>
+        </svg>
+        Start Detection
+      </button>
+      <button id="stop-btn" class="control-btn control-btn--stop" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+          <path d="M5 6.5A1.5 1.5 0 0 1 6.5 5h3A1.5 1.5 0 0 1 11 6.5v3A1.5 1.5 0 0 1 9.5 11h-3A1.5 1.5 0 0 1 5 9.5v-3z"/>
+        </svg>
+        Stop Detection
+      </button>
+      <button id="compare-btn" class="control-btn control-btn--compare" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/>
+        </svg>
+        Compare Results
+      </button>
+      <button id="reset-btn" class="control-btn control-btn--reset">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+          <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+        </svg>
+        Reset
+      </button>
+    </div>
+
+    <!-- Main Monitoring Layout: Map Left, Stats Right -->
+    <div class="monitoring-layout" id="monitoring-layout" style="display: none;">
+      <!-- Left Side: Map -->
+      <div class="monitoring-left">
+        <div class="map-container" id="map-container">
+          <div id="map"></div>
+          <div class="map-legend">
+            <div class="legend-item">
+              <span class="legend-marker legend-marker--benign"></span>
+              <span>Benign Traffic</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-marker legend-marker--attack"></span>
+              <span>Attack Detected</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Middle Side: Stats and Progress -->
+      <div class="monitoring-middle">
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progress-container">
+          <h3 class="section-title">Detection Progress</h3>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <div class="progress-text" id="progress-text">0 / 0 (0%)</div>
+        </div>
+
+        <!-- Live Statistics -->
+        <div class="stats-section" id="stats-section">
+          <h3 class="section-title">Live Statistics</h3>
+          <div class="stats-grid" id="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">Total Processed</div>
+              <div class="stat-value" id="stat-total">0</div>
+            </div>
+            <div class="stat-card stat-card--benign">
+              <div class="stat-label">Benign Traffic</div>
+              <div class="stat-value" id="stat-benign">0</div>
+            </div>
+            <div class="stat-card stat-card--attack">
+              <div class="stat-label">Attacks Detected</div>
+              <div class="stat-value" id="stat-attacks">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Current Accuracy</div>
+              <div class="stat-value" id="stat-accuracy">0%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side: Recent Detections -->
+      <div class="monitoring-right">
+        <!-- Recent Detections -->
+        <div class="recent-detections" id="recent-detections">
+          <h3 class="section-title">Recent Detections</h3>
+          <div class="detections-list" id="detections-list">
+            <div class="no-detections">No detections yet. Start monitoring to see live results.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparison Modal -->
+    <div class="comparison-modal" id="comparison-modal">
+      <div class="comparison-content">
+        <button class="comparison-close" id="comparison-close">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <h2>Detection Results Comparison</h2>
+        <div class="comparison-metrics" id="comparison-metrics"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ DIVIDER ═══ -->
+  <div class="section-divider"></div>
+
+  <!-- ═══ FEATURES SECTION ═══ -->
+  <section class="collection">
+    <div class="collection__inner">
+      <div>
+        <span class="panel__kicker">Features</span>
+        <h3>Enterprise-Grade Security</h3>
+        <p>Our AI-powered intrusion detection system provides comprehensive network monitoring with real-time threat visualization and detailed analytics.</p>
+      </div>
+      <div class="collection__details">
+        <div><span>Detection</span><strong>Real-Time AI</strong></div>
+        <div><span>Models</span><strong>LSTM & VAE</strong></div>
+        <div><span>Visualization</span><strong>Live Geo-Tracking</strong></div>
+        <div><span>Analysis</span><strong>Detailed Metrics</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="footer">
+    <div>
+      <div class="footer__brand">NetShield AI</div>
+      <p>© 2026 Network Intrusion Detection System. All Rights Reserved.</p>
+    </div>
+    <div class="footer__cta">
+      <a class="btn btn--primary" href="#monitoring">Start Monitoring</a>
+      <p class="footer__micro">AI-Powered Security | Real-Time Protection</p>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
