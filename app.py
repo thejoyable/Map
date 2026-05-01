@@ -44,15 +44,15 @@ def load_models():
         return
     try:
         lstm_model = keras.models.load_model(LSTM_MODEL_PATH, compile=False)
-        print("✓ LSTM model loaded successfully")
+        print("[OK] LSTM model loaded successfully")
     except Exception as e:
-        print(f"✗ Error loading LSTM model: {e}")
+        print(f"[ERROR] Error loading LSTM model: {e}")
 
     try:
         vae_model = keras.models.load_model(VAE_MODEL_PATH, custom_objects={'Sampling': Sampling}, compile=False)
-        print("✓ VAE model loaded successfully")
+        print("[OK] VAE model loaded successfully")
     except Exception as e:
-        print(f"✗ Error loading VAE model: {e}")
+        print(f"[ERROR] Error loading VAE model: {e}")
     
     _models_loaded = True
 
@@ -295,7 +295,7 @@ def start_detection():
     except Exception:
         test_size = 100
 
-    if test_size not in {25, 50, 75, 100}:
+    if test_size not in {1, 5, 25, 50, 75, 100}:
         test_size = 100
 
     # Ensure models are loaded
