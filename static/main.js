@@ -13,6 +13,12 @@
       document.body.classList.add("is-loaded");
       const loader = document.getElementById("loader");
       if (loader) loader.setAttribute("aria-hidden", "true");
+      // Canvas was sized while loader covered it — resize and force-draw frame 0
+      requestAnimationFrame(() => {
+        setCanvasSize();
+        latestProgress = -1;
+        updateScene();
+      });
     }
   }
 
@@ -243,7 +249,9 @@
         if (loaderProgress) {
           loaderProgress.textContent = `${Math.round((loadedCount / FRAME_COUNT) * 100)}%`;
         }
-        if (loadedCount === 1) drawFrame(0);
+        if (loadedCount === 1 && document.body.classList.contains('is-loaded')) {
+          setCanvasSize(); latestProgress = -1; updateScene();
+        }
         if (loadedCount === FRAME_COUNT) {
           framesLoaded = true;
           checkLoaderCompletion();
