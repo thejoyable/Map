@@ -5,6 +5,203 @@
 (function () {
   "use strict";
 
+  let framesLoaded = false;
+  let cyberLoaderFinishedSequence = false;
+
+  function checkLoaderCompletion() {
+    if (framesLoaded && cyberLoaderFinishedSequence) {
+      document.body.classList.add("is-loaded");
+      const loader = document.getElementById("loader");
+      if (loader) loader.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  /* --- Federated AI Loader Logic: AutoEncoder Flow --- */
+  function initCyberLoader() {
+    const canvas = document.getElementById('matrix-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // --- AutoEncoder Bottleneck Animation ---
+    const particles = [];
+    const particleCount = 400; // Optimal count for smooth loading
+    const baseSpeed = 5;
+    const bottleneckWidth = 60;
+
+    class Particle {
+      constructor() {
+        this.reset(true);
+      }
+
+      reset(randomX = false) {
+        this.x = randomX ? Math.random() * canvas.width : 0;
+        this.y = Math.random() * canvas.height;
+        this.originalY = this.y;
+        this.speedOffset = Math.random() * 0.5 + 0.5;
+        this.isThreat = Math.random() > 0.95; // 5% chance to be an anomaly
+      }
+
+      update() {
+        this.x += baseSpeed * this.speedOffset;
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        const distanceToCenter = Math.abs(this.x - centerX);
+        let compression = distanceToCenter / (canvas.width / 2);
+        let currentSpread = (canvas.height / 2) * Math.max(compression, bottleneckWidth / canvas.height);
+
+        const targetY = centerY + ((this.originalY - centerY) / (canvas.height / 2)) * currentSpread;
+        this.y += (targetY - this.y) * 0.1;
+
+        if (this.x > canvas.width) {
+          this.reset();
+        }
+      }
+
+      draw() {
+        const isCompressed = Math.abs(this.x - canvas.width / 2) < 50;
+
+        if (isCompressed) {
+          ctx.fillStyle = '#ffffff'; // Flash white in latent space
+        } else if (this.isThreat) {
+          ctx.fillStyle = '#f59e0b'; // Amber for anomalies
+        } else {
+          ctx.fillStyle = '#38bdf8'; // Cyan/Blue for normal data
+        }
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function initParticles() {
+      particles.length = 0;
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+      }
+    }
+    initParticles();
+
+    // --- Cleaned up drawing function ---
+    function drawAutoEncoder() {
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.3)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.font = 'bold 36px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('AUTOENCODERS', canvas.width / 2, 80);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.font = '25px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('ENCODER - INPUT DATA', canvas.width * 0.15, canvas.height / 2 - 100);
+      ctx.fillText('LATENT SPACE', canvas.width / 2, canvas.height / 2 - bottleneckWidth / 2 - 30);
+      ctx.fillText('DECODER - RECONSTRUCTED DATA', canvas.width * 0.85, canvas.height / 2 - 100);
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.setLineDash([5, 5]);
+      ctx.strokeRect(canvas.width / 2 - 30, canvas.height / 2 - bottleneckWidth / 2 - 20, 60, bottleneckWidth + 40);
+      ctx.setLineDash([]);
+
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+      }
+
+      requestAnimationFrame(drawAutoEncoder);
+    }
+
+    // Start animation loop
+    requestAnimationFrame(drawAutoEncoder);
+
+    // --- Terminal logic ---
+    const container = document.getElementById('terminal-lines-container');
+    if (!container) return;
+
+    const lines = [
+      "U R Being HACKED :)",
+      "HACKING AND STEALING YOUR DATA ;)",
+      "PLZ WAIT...",
+      "DON'T PANIC IT WAS A JOKE... HEHE",
+      "BUT IT COULD HAPPEN IF THERE WAS NO AUTOENCODER BASED NETWORK INTRUSION DETECTION SYSTEM...",
+      "Starting the Autoencoder system...",
+      "Compressing data to find the most important patterns...",
+      "Passing information through the narrow bottleneck layer...",
+      "Reconstructing data back to its original size...",
+      "Comparing the original data with the reconstructed data...",
+      "System ready. Monitoring for unusual activity..."
+    ];
+
+    let currentLineIdx = 0;
+    const promptPrefix = "PS C:\\Windows\\system32> ";
+
+    function typeLine(text, cb) {
+      const lineDiv = document.createElement('div');
+      lineDiv.className = 'terminal-line';
+
+      // --- NEW: Font fix and Color update ---
+      lineDiv.style.fontFamily = "'Courier New', Courier, monospace"; // Prevents random font changes
+      lineDiv.style.color = '#00ffff';
+      lineDiv.style.fontSize = '20px';
+      lineDiv.style.marginBottom = '10px';
+
+      const textSpan = document.createElement('span');
+      const cursorSpan = document.createElement('span');
+      cursorSpan.className = 'terminal-cursor';
+      cursorSpan.textContent = '_';
+
+      textSpan.textContent = promptPrefix;
+      lineDiv.appendChild(textSpan);
+      lineDiv.appendChild(cursorSpan);
+      container.appendChild(lineDiv);
+
+      let charIdx = 0;
+      const typeInterval = setInterval(() => {
+        if (charIdx < text.length) {
+          textSpan.textContent = promptPrefix + text.substring(0, charIdx + 1);
+          charIdx++;
+        } else {
+          clearInterval(typeInterval);
+          cursorSpan.remove();
+          if (cb) setTimeout(cb, 150);
+        }
+      }, 45);
+    }
+
+    function typeNextLine() {
+      if (currentLineIdx < lines.length) {
+        typeLine(lines[currentLineIdx], typeNextLine);
+        currentLineIdx++;
+      } else {
+        cyberLoaderFinishedSequence = true;
+        if (!framesLoaded) {
+          setTimeout(() => {
+            container.innerHTML = '';
+            currentLineIdx = 0;
+            cyberLoaderFinishedSequence = false;
+            typeNextLine();
+          }, 1000);
+        } else {
+          checkLoaderCompletion();
+        }
+      }
+    }
+
+    typeNextLine();
+  }
+
+  initCyberLoader();
+
   const FRAME_PATH = "/static/frames/ezgif-frame-";
   const FRAME_COUNT = 240;
 
@@ -43,11 +240,13 @@
       img.src = `${FRAME_PATH}${num}.webp`;
       img.onload = () => {
         loadedCount++;
-        loaderProgress.textContent = `${Math.round((loadedCount / FRAME_COUNT) * 100)}%`;
+        if (loaderProgress) {
+          loaderProgress.textContent = `${Math.round((loadedCount / FRAME_COUNT) * 100)}%`;
+        }
         if (loadedCount === 1) drawFrame(0);
         if (loadedCount === FRAME_COUNT) {
-          document.body.classList.add("is-loaded");
-          loader.setAttribute("aria-hidden", "true");
+          framesLoaded = true;
+          checkLoaderCompletion();
         }
       };
       images[i] = img;
@@ -137,7 +336,23 @@
   setCanvasSize();
   preloadFrames();
   updateScene();
-  window.addEventListener("resize", () => { setCanvasSize(); updateScene(); });
+  function onResize() {
+  setCanvasSize();
+  latestProgress = -1; // Force redraw even if scroll progress hasn't changed
+  updateScene();
+}
+
+window.addEventListener("resize", onResize);
+
+// Fix for F11 fullscreen: browser fires fullscreenchange separately from resize
+document.addEventListener("fullscreenchange", () => {
+  setTimeout(() => { onResize(); }, 50); // Small delay lets browser finish layout
+});
+
+// Also handle visibility restore (tab switching, etc.)
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) { latestProgress = -1; updateScene(); }
+});
   window.addEventListener("scroll", onScroll, { passive: true });
 
   /* --- Smooth nav links --- */
@@ -150,7 +365,7 @@
   });
 
   /* === NETWORK INTRUSION DETECTION === */
-  
+
   // Initialize map
   let map = null;
   let markers = [];
@@ -168,7 +383,7 @@
 
   function initMap() {
     if (map) return;
-    
+
     map = L.map('map', {
       center: [20, 0],
       zoom: 2,
@@ -197,11 +412,11 @@
     });
 
     const marker = L.marker([result.src_lat, result.src_lon], { icon }).addTo(map);
-    
+
     const statusText = result.predicted_label === 0 ? 'Benign' : 'Attack';
     const actualText = result.actual_label === 0 ? 'Benign' : 'Attack';
     const match = result.predicted_label === result.actual_label ? '' : '';
-    
+
     marker.bindPopup(`
       <div style="font-family: 'Jost', sans-serif; min-width: 200px;">
         <strong style="color: ${color};">${statusText} Traffic ${match}</strong><br>
@@ -232,7 +447,7 @@
     document.getElementById('stat-total').textContent = stats.total;
     document.getElementById('stat-benign').textContent = stats.benign;
     document.getElementById('stat-attacks').textContent = stats.attacks;
-    
+
     const accuracy = stats.total > 0 ? ((stats.correct / stats.total) * 100).toFixed(2) : 0;
     document.getElementById('stat-accuracy').textContent = accuracy + '%';
   }
@@ -241,36 +456,36 @@
     const modelType = document.getElementById('model-select').value;
     const testSizeSelect = document.getElementById('test-size-select');
     const testSize = testSizeSelect ? parseInt(testSizeSelect.value, 10) : 100;
-    
+
     // Reset
     stats = { total: 0, benign: 0, attacks: 0, correct: 0 };
     currentIndex = 0;
     predictionResults = [];
     markers.forEach(m => map.removeLayer(m));
     markers = [];
-    
+
     // Clear recent detections
     const detectionsList = document.getElementById('detections-list');
     detectionsList.innerHTML = '<div class="no-detections">Monitoring network traffic...</div>';
-    
+
     // Initialize map if needed
     initMap();
-    
+
     // Show monitoring layout
     document.getElementById('monitoring-layout').style.display = 'grid';
-    
+
     // Fix map rendering by invalidating size after it becomes visible
     setTimeout(() => {
       if (map) map.invalidateSize();
     }, 100);
-    
+
     // Disable/enable buttons
     document.getElementById('start-btn').disabled = true;
     document.getElementById('stop-btn').disabled = false;
     document.getElementById('compare-btn').disabled = true;
     document.getElementById('model-select').disabled = true;
     if (testSizeSelect) testSizeSelect.disabled = true;
-    
+
     isDetecting = true;
 
     try {
@@ -280,12 +495,12 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model_type: modelType, test_size: testSize })
       });
-      
+
       const startData = await startResp.json();
-      
+
       if (startData.status === 'started') {
         totalRecords = startData.total_records;
-        
+
         Swal.fire({
           icon: 'success',
           title: 'Detection Started',
@@ -295,7 +510,7 @@
           background: '#111',
           color: '#eee'
         });
-        
+
         // Start polling for predictions
         detectionInterval = setInterval(getNextPrediction, 500);
       }
@@ -314,13 +529,13 @@
 
   function addRecentDetection(result) {
     const detectionsList = document.getElementById('detections-list');
-    
+
     // Remove "no detections" message
     const noDetections = detectionsList.querySelector('.no-detections');
     if (noDetections) {
       noDetections.remove();
     }
-    
+
     const statusText = result.predicted_label === 0 ? 'Benign' : 'Attack';
     const actualText = result.actual_label === 0 ? 'Benign' : 'Attack';
     const isCorrect = result.predicted_label === result.actual_label;
@@ -328,7 +543,7 @@
     const matchSymbol = isCorrect ? '✓' : '✗';
     const itemClass = result.predicted_label === 0 ? 'detection-item--benign' : 'detection-item--attack';
     const statusClass = result.predicted_label === 0 ? 'detection-status--benign' : 'detection-status--attack';
-    
+
     const detectionItem = document.createElement('div');
     detectionItem.className = `detection-item ${itemClass}`;
     detectionItem.innerHTML = `
@@ -343,10 +558,10 @@
         <small>${result.src_ip} &rarr; ${result.dst_ip}</small>
       </div>
     `;
-    
+
     // Add to top of list
     detectionsList.insertBefore(detectionItem, detectionsList.firstChild);
-    
+
     // Keep only last 10 detections
     while (detectionsList.children.length > 10) {
       detectionsList.removeChild(detectionsList.lastChild);
@@ -355,35 +570,35 @@
 
   async function getNextPrediction() {
     if (!isDetecting) return;
-    
+
     if (currentIndex >= totalRecords && totalRecords > 0) {
-        stopDetection();
-        document.getElementById('compare-btn').disabled = false;
-        Swal.fire({
-          icon: 'success',
-          title: 'Detection Complete',
-          text: `Processed ${currentIndex} connections`,
-          background: '#111',
-          color: '#eee'
-        });
-        return;
+      stopDetection();
+      document.getElementById('compare-btn').disabled = false;
+      Swal.fire({
+        icon: 'success',
+        title: 'Detection Complete',
+        text: `Processed ${currentIndex} connections`,
+        background: '#111',
+        color: '#eee'
+      });
+      return;
     }
 
     const modelType = document.getElementById('model-select').value;
-    
+
     try {
       const resp = await fetch('/api/get_next_prediction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model_type: modelType, index: currentIndex })
       });
-      
+
       const data = await resp.json();
-      
+
       if (data.status === 'completed') {
         stopDetection();
         document.getElementById('compare-btn').disabled = false;
-        
+
         Swal.fire({
           icon: 'success',
           title: 'Detection Complete',
@@ -393,29 +608,29 @@
         });
         return;
       }
-      
+
       if (data.status === 'success') {
         const result = data.result;
         predictionResults.push(result);
         currentIndex++;
-        
+
         // Update stats
         stats.total++;
         if (result.predicted_label === 0) stats.benign++;
         else stats.attacks++;
         if (result.predicted_label === result.actual_label) stats.correct++;
-        
+
         updateStats();
-        
+
         // Update progress
         const percentage = totalRecords > 0 ? Math.round((currentIndex / totalRecords) * 100 * 100) / 100 : 0;
         document.getElementById('progress-fill').style.width = percentage + '%';
-        document.getElementById('progress-text').textContent = 
+        document.getElementById('progress-text').textContent =
           `${currentIndex} / ${totalRecords} (${percentage}%)`;
-        
+
         // Add marker
         addMarker(result);
-        
+
         // Add to recent detections
         addRecentDetection(result);
       }
@@ -426,12 +641,12 @@
 
   async function stopDetection() {
     isDetecting = false;
-    
+
     if (detectionInterval) {
       clearInterval(detectionInterval);
       detectionInterval = null;
     }
-    
+
     document.getElementById('start-btn').disabled = false;
     document.getElementById('stop-btn').disabled = true;
     document.getElementById('model-select').disabled = false;
@@ -453,7 +668,7 @@
 
     const total = predictionResults.length;
     let tp = 0, tn = 0, fp = 0, fn = 0;
-    
+
     predictionResults.forEach(r => {
       if (r.actual_label === 1 && r.predicted_label === 1) tp++;
       else if (r.actual_label === 0 && r.predicted_label === 0) tn++;
@@ -465,8 +680,8 @@
     const accuracy = total > 0 ? ((correct / total) * 100).toFixed(2) : 0;
     const precision = (tp + fp) > 0 ? ((tp / (tp + fp)) * 100).toFixed(2) : 0;
     const recall = (tp + fn) > 0 ? ((tp / (tp + fn)) * 100).toFixed(2) : 0;
-    const f1_score = (parseFloat(precision) + parseFloat(recall)) > 0 
-      ? ((2 * parseFloat(precision) * parseFloat(recall)) / (parseFloat(precision) + parseFloat(recall))).toFixed(2) 
+    const f1_score = (parseFloat(precision) + parseFloat(recall)) > 0
+      ? ((2 * parseFloat(precision) * parseFloat(recall)) / (parseFloat(precision) + parseFloat(recall))).toFixed(2)
       : 0;
 
     const html = `
@@ -512,32 +727,32 @@
         </div>
       </div>
     `;
-    
+
     document.getElementById('comparison-metrics').innerHTML = html;
     document.getElementById('comparison-modal').classList.add('active');
   }
 
   async function resetDetection() {
     stopDetection();
-    
+
     stats = { total: 0, benign: 0, attacks: 0, correct: 0 };
     currentIndex = 0;
     totalRecords = 0;
     predictionResults = [];
     markers.forEach(m => map.removeLayer(m));
     markers = [];
-    
+
     updateStats();
-    
+
     document.getElementById('progress-fill').style.width = '0%';
     document.getElementById('progress-text').textContent = '0 / 0 (0%)';
     document.getElementById('monitoring-layout').style.display = 'none';
     document.getElementById('compare-btn').disabled = true;
-    
+
     // Reset recent detections
     const detectionsList = document.getElementById('detections-list');
     detectionsList.innerHTML = '<div class="no-detections">No detections yet. Start monitoring to see live results.</div>';
-    
+
     Swal.fire({
       icon: 'info',
       title: 'Reset Complete',
@@ -554,11 +769,11 @@
   document.getElementById('stop-btn').addEventListener('click', stopDetection);
   document.getElementById('compare-btn').addEventListener('click', showComparison);
   document.getElementById('reset-btn').addEventListener('click', resetDetection);
-  
+
   document.getElementById('comparison-close').addEventListener('click', () => {
     document.getElementById('comparison-modal').classList.remove('active');
   });
-  
+
   document.getElementById('comparison-modal').addEventListener('click', (e) => {
     if (e.target.id === 'comparison-modal') {
       document.getElementById('comparison-modal').classList.remove('active');

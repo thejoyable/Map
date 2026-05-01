@@ -13,6 +13,12 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+  <div class="cyber-loader" id="loader">
+    <canvas id="matrix-canvas"></canvas>
+    <div class="terminal-container" id="terminal-lines-container">
+    </div>
+    <div class="cyber-progress" style="display: none;"><span id="loader-progress">0%</span></div>
+  </div>
   <div class="ambient-halo" aria-hidden="true"></div>
 
   <!-- ═══ PILL NAVBAR ═══ -->
@@ -32,10 +38,6 @@
     <div class="sticky">
       <canvas id="sequence" aria-label="Network security visualization"></canvas>
       <div class="canvas-glow" aria-hidden="true"></div>
-      <div class="loader" id="loader" style="display: none;">
-        Loading security interface
-        <span id="loader-progress">0%</span>
-      </div>
     </div>
 
     <div class="story" id="story">
