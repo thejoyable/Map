@@ -20,6 +20,8 @@
     <div class="cyber-progress" style="display: none;"><span id="loader-progress">0%</span></div>
   </div>
   <div class="ambient-halo" aria-hidden="true"></div>
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+  <div class="grain-overlay" aria-hidden="true"></div>
 
   <!-- ═══ PILL NAVBAR ═══ -->
   <nav class="nav" id="nav">
@@ -101,14 +103,14 @@
 
   <!-- ═══ MONITORING SECTION ═══ -->
   <section class="tryon-section" id="monitoring">
-    <div class="tryon-header">
+    <div class="tryon-header reveal">
       <span class="panel__kicker">Live Monitoring</span>
       <h2>Network Intrusion Detection</h2>
       <p>Select your detection model and start monitoring network traffic in real-time.</p>
     </div>
 
     <!-- Model Selection -->
-    <div class="select-wrapper">
+    <div class="select-wrapper reveal reveal--delay-1">
       <label for="model-select">Detection Model</label>
       <select id="model-select">
         <option value="lstm">LSTM Autoencoder (Threshold: 0.000053)</option>
@@ -127,7 +129,7 @@
     </div>
 
     <!-- Control Buttons -->
-    <div class="control-buttons">
+    <div class="control-buttons reveal reveal--delay-2">
       <button id="start-btn" class="control-btn control-btn--start">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
           <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
@@ -242,7 +244,7 @@
 
   <!-- ═══ FEATURES SECTION ═══ -->
   <section class="collection">
-    <div class="collection__inner">
+    <div class="collection__inner reveal">
       <div>
         <span class="panel__kicker">Features</span>
         <h3>Enterprise-Grade Security</h3>
@@ -259,7 +261,7 @@
 
   <!-- ═══ FOOTER ═══ -->
   <footer class="footer">
-    <div>
+    <div class="reveal">
       <div class="footer__brand">NetShield AI</div>
       <p>© 2026 Network Intrusion Detection System. All Rights Reserved.</p>
     </div>

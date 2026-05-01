@@ -282,15 +282,16 @@
       const isLast = idx === panels.length - 1;
       if (idx === 0 && progress <= 0.06) {
         panel.style.opacity = "1";
-        panel.style.transform = "translateY(0px)";
+        panel.style.transform = "translateY(0px) rotateX(0deg)";
         return;
       }
       if (isLast && progress >= start) {
         const local = clamp((progress - start) / (end - start), 0, 1);
         const fadeIn = easeOutCubic(clamp(local / 0.3, 0, 1));
         const drift = (1 - fadeIn) * 28;
+        const rotX = (1 - fadeIn) * 4;
         panel.style.opacity = fadeIn.toFixed(3);
-        panel.style.transform = `translateY(${drift.toFixed(2)}px)`;
+        panel.style.transform = `translateY(${drift.toFixed(2)}px) rotateX(${rotX.toFixed(2)}deg)`;
         return;
       }
       const local = clamp((progress - start) / (end - start), 0, 1);
@@ -298,8 +299,9 @@
       const fadeOut = 1 - easeInCubic(clamp((local - 0.7) / 0.3, 0, 1));
       const opacity = Math.min(fadeIn, fadeOut);
       const drift = (1 - opacity) * 28 * (progress < (start + end) / 2 ? 1 : -1);
+      const rotX = (1 - opacity) * 4 * (progress < (start + end) / 2 ? 1 : -1);
       panel.style.opacity = opacity.toFixed(3);
-      panel.style.transform = `translateY(${drift.toFixed(2)}px)`;
+      panel.style.transform = `translateY(${drift.toFixed(2)}px) rotateX(${rotX.toFixed(2)}deg)`;
     });
   }
 
@@ -320,6 +322,20 @@
     const currentScrollY = window.scrollY;
     scrollDirection = currentScrollY > lastScrollY ? 'down' : 'up';
     lastScrollY = currentScrollY;
+
+    // Scroll progress bar
+    const scrollProgressEl = document.getElementById('scroll-progress');
+    if (scrollProgressEl) {
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = docHeight > 0 ? (currentScrollY / docHeight) * 100 : 0;
+      scrollProgressEl.style.width = pct + '%';
+    }
+
+    // Hide scroll hint after scrolling
+    const scrollHint = document.getElementById('scroll-hint');
+    if (scrollHint && currentScrollY > 100) {
+      scrollHint.style.opacity = '0';
+    }
 
     if (currentScrollY < 60) {
       nav.classList.add("nav--visible");
@@ -362,6 +378,18 @@ document.addEventListener("visibilitychange", () => {
   if (!document.hidden) { latestProgress = -1; updateScene(); }
 });
   window.addEventListener("scroll", onScroll, { passive: true });
+
+  /* --- IntersectionObserver for reveal animations --- */
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('reveal--visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
   /* --- Smooth nav links --- */
   document.querySelectorAll('.nav__links a[href^="#"]').forEach(a => {
@@ -412,9 +440,10 @@ document.addEventListener("visibilitychange", () => {
 
   function addMarker(result) {
     const color = result.predicted_label === 0 ? '#4ade80' : '#ef4444';
+    const isAttack = result.predicted_label === 1;
     const icon = L.divIcon({
       className: 'custom-marker',
-      html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>`,
+      html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);${isAttack ? ' animation: markerGlow 2s ease-out infinite;' : ''}"></div>`,
       iconSize: [12, 12],
       iconAnchor: [6, 6]
     });
@@ -451,12 +480,30 @@ document.addEventListener("visibilitychange", () => {
     }, 100);
   }
 
-  function updateStats() {
-    document.getElementById('stat-total').textContent = stats.total;
-    document.getElementById('stat-benign').textContent = stats.benign;
-    document.getElementById('stat-attacks').textContent = stats.attacks;
+  function animateValue(el, start, end, duration) {
+    if (start === end) { el.textContent = end; return; }
+    const range = end - start;
+    const startTime = performance.now();
+    function step(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(start + range * eased);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
 
-    const accuracy = stats.total > 0 ? ((stats.correct / stats.total) * 100).toFixed(2) : 0;
+  function updateStats() {
+    const elTotal = document.getElementById('stat-total');
+    const elBenign = document.getElementById('stat-benign');
+    const elAttacks = document.getElementById('stat-attacks');
+
+    animateValue(elTotal, parseInt(elTotal.textContent) || 0, stats.total, 400);
+    animateValue(elBenign, parseInt(elBenign.textContent) || 0, stats.benign, 400);
+    animateValue(elAttacks, parseInt(elAttacks.textContent) || 0, stats.attacks, 400);
+
+    const accuracy = stats.total > 0 ? ((stats.correct / stats.total) * 100).toFixed(2) : '0';
     document.getElementById('stat-accuracy').textContent = accuracy + '%';
   }
 
@@ -788,7 +835,5 @@ document.addEventListener("visibilitychange", () => {
     }
   });
 
-  // Initialize map on page load
-  setTimeout(initMap, 1000);
 
 })();
