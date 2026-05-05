@@ -2,7 +2,7 @@ import cv2
 import os
 import glob
 
-video_path = "Man_focused_on_laptop_202604301742.mp4"
+video_path = "Man_working_on_laptop_digital_202605020030.mp4"
 output_dir = "static/frames"
 
 if not os.path.exists(output_dir):

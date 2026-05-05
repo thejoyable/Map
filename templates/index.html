@@ -8,9 +8,10 @@
   <meta name="description" content="Real-time network intrusion detection with AI-powered anomaly detection and live geo-tracking visualization.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Serif+Display:ital@0;1&family=Jost:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- Dark mode is the default; no theme persistence -->
 </head>
 <body>
   <div class="cyber-loader" id="loader">
@@ -20,7 +21,6 @@
     <div class="cyber-progress" style="display: none;"><span id="loader-progress">0%</span></div>
   </div>
   <div class="ambient-halo" aria-hidden="true"></div>
-  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
   <div class="grain-overlay" aria-hidden="true"></div>
 
   <!-- ═══ PILL NAVBAR ═══ -->
@@ -32,6 +32,13 @@
       <a href="#detection">Detection</a>
       <a href="#monitoring">Live Monitor</a>
     </div>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+      <div class="theme-toggle__knob">
+        <svg class="theme-toggle__icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </div>
+    </button>
     <a class="nav__cta" href="#monitoring">Start Monitoring</a>
   </nav>
 

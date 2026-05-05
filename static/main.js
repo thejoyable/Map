@@ -323,14 +323,6 @@
     scrollDirection = currentScrollY > lastScrollY ? 'down' : 'up';
     lastScrollY = currentScrollY;
 
-    // Scroll progress bar
-    const scrollProgressEl = document.getElementById('scroll-progress');
-    if (scrollProgressEl) {
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const pct = docHeight > 0 ? (currentScrollY / docHeight) * 100 : 0;
-      scrollProgressEl.style.width = pct + '%';
-    }
-
     // Hide scroll hint after scrolling
     const scrollHint = document.getElementById('scroll-hint');
     if (scrollHint && currentScrollY > 100) {
@@ -835,5 +827,29 @@ document.addEventListener("visibilitychange", () => {
     }
   });
 
+  /* === THEME TOGGLE === */
+  const themeToggle = document.getElementById('theme-toggle');
+  const htmlEl = document.documentElement;
+
+  // Dark mode is always the default on page load
+
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      // Add transitioning class for smooth animation
+      htmlEl.classList.add('theme-transitioning');
+
+      const isLight = htmlEl.getAttribute('data-theme') === 'light';
+      if (isLight) {
+        htmlEl.removeAttribute('data-theme');
+      } else {
+        htmlEl.setAttribute('data-theme', 'light');
+      }
+
+      // Remove transitioning class after animation completes
+      setTimeout(() => {
+        htmlEl.classList.remove('theme-transitioning');
+      }, 550);
+    });
+  }
 
 })();
