@@ -8,8 +8,11 @@
   let framesLoaded = false;
   let cyberLoaderFinishedSequence = false;
 
+  let loaderDismissed = false;
+
   function checkLoaderCompletion() {
-    if (framesLoaded && cyberLoaderFinishedSequence) {
+    if (framesLoaded && !loaderDismissed) {
+      loaderDismissed = true;
       document.body.classList.add("is-loaded");
       const loader = document.getElementById("loader");
       if (loader) loader.setAttribute("aria-hidden", "true");
@@ -135,11 +138,6 @@
     if (!container) return;
 
     const lines = [
-      "U R Being HACKED :)",
-      "HACKING AND STEALING YOUR DATA ;)",
-      "PLZ WAIT...",
-      "DON'T PANIC IT WAS A JOKE... HEHE",
-      "BUT IT COULD HAPPEN IF THERE WAS NO AUTOENCODER BASED NETWORK INTRUSION DETECTION SYSTEM...",
       "Starting the Autoencoder system...",
       "Compressing data to find the most important patterns...",
       "Passing information through the narrow bottleneck layer...",
@@ -197,8 +195,6 @@
             cyberLoaderFinishedSequence = false;
             typeNextLine();
           }, 1000);
-        } else {
-          checkLoaderCompletion();
         }
       }
     }
